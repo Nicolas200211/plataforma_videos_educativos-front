@@ -1,2 +1,139 @@
 @import "tailwindcss";
 
+/* Configuración de tema personalizado para Tailwind v4 */
+@theme {
+  /* Colores principales de Inspira */
+  --color-inspira-primary: #2E7D32;
+  --color-inspira-primary-dark: #1B5E20;
+  --color-inspira-primary-light: #66BB6A;
+
+  --color-inspira-50: #E8F5E9;
+  --color-inspira-100: #C8E6C9;
+  --color-inspira-200: #A5D6A7;
+  --color-inspira-300: #81C784;
+  --color-inspira-400: #66BB6A;
+  --color-inspira-500: #4CAF50;
+  --color-inspira-600: #2E7D32;
+  --color-inspira-700: #1B5E20;
+  --color-inspira-800: #2E7D32;
+  --color-inspira-900: #1B4D1F;
+
+  /* Grises/Plomo (Charcoal) */
+  --color-charcoal-50: #FAFAFA;
+  --color-charcoal-100: #F5F5F5;
+  --color-charcoal-200: #EEEEEE;
+  --color-charcoal-300: #E0E0E0;
+  --color-charcoal-400: #BDBDBD;
+  --color-charcoal-500: #9E9E9E;
+  --color-charcoal-600: #757575;
+  --color-charcoal-700: #616161;
+  --color-charcoal-800: #4A4A4A;
+  --color-charcoal-900: #212121;
+
+  /* Sombras personalizadas */
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-soft-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-green: 0 4px 14px 0 rgba(46, 125, 50, 0.25);
+  --shadow-green-lg: 0 8px 24px rgba(46, 125, 50, 0.35);
+}
+
+/* Estilos base */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5F5F5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #66BB6A;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2E7D32;
+}
+
+/* Animaciones personalizadas */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-down {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-in-left {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(46, 125, 50, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(46, 125, 50, 0.4); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-2px); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.4s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Sidebar animations */
+.sidebar-item-enter {
+  animation: slide-in-left 0.4s ease-out forwards;
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.sidebar-item-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-item-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}

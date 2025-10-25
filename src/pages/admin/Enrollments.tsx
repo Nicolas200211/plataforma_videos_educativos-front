@@ -6,7 +6,11 @@ import {
   Clock,
   Eye,
   Search,
-  Filter
+  Filter,
+  FileCheck,
+  Coins,
+  Calendar,
+  Users
 } from 'lucide-react';
 import { Modal } from '../../components/Modal';
 import { ConfirmationModal } from '../../components/ConfirmationModal';
@@ -109,18 +113,18 @@ export function Enrollments() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      active: { color: 'bg-green-100 text-green-800', label: 'Activa', icon: CheckCircle },
-      pending_payment: { color: 'bg-yellow-100 text-yellow-800', label: 'Pendiente', icon: Clock },
-      inactive: { color: 'bg-red-100 text-red-800', label: 'Inactiva', icon: XCircle },
-      expired: { color: 'bg-gray-100 text-gray-800', label: 'Expirada', icon: XCircle },
+      active: { color: 'bg-inspira-50 text-inspira-primary', label: 'Activa', icon: CheckCircle },
+      pending_payment: { color: 'bg-amber-100 text-amber-700', label: 'Pendiente', icon: Clock },
+      inactive: { color: 'bg-red-100 text-red-700', label: 'Inactiva', icon: XCircle },
+      expired: { color: 'bg-charcoal-100 text-charcoal-600', label: 'Expirada', icon: XCircle },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.inactive;
     const Icon = config.icon;
 
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
-        <Icon className="w-3 h-3 mr-1" />
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${config.color}`}>
+        <Icon className="w-3.5 h-3.5 mr-1" />
         {config.label}
       </span>
     );
@@ -143,47 +147,112 @@ export function Enrollments() {
   }, [statusFilter, searchTerm, enrollments, filteredEnrollments]);
 
   const pendingCount = enrollments?.filter(e => e.status === 'pending_payment').length || 0;
+  const activeCount = enrollments?.filter(e => e.status === 'active').length || 0;
+  const totalRevenue = enrollments?.reduce((sum, e) => sum + (e.amountPaid || 0), 0) || 0;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-inspira-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-charcoal-600 font-medium">Cargando solicitudes...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-charcoal-900">
               Solicitudes de Suscripción
             </h1>
-            <p className="text-gray-600 mt-1">
-              Gestiona las solicitudes de suscripción de los estudiantes
+            <p className="text-charcoal-600 mt-1">
+              Gestiona y aprueba las solicitudes de suscripción de los estudiantes
             </p>
           </div>
           {pendingCount > 0 && (
-            <div className="bg-yellow-100 border border-yellow-300 rounded-lg px-4 py-2">
-              <span className="text-yellow-800 font-semibold">
-                {pendingCount} solicitud{pendingCount !== 1 ? 'es' : ''} pendiente{pendingCount !== 1 ? 's' : ''}
+            <div className="flex items-center space-x-2 bg-amber-100 border-2 border-amber-300 rounded-lg px-5 py-2.5 animate-pulse">
+              <Clock className="w-5 h-5 text-amber-700" />
+              <span className="text-amber-800 font-bold">
+                {pendingCount} pendiente{pendingCount !== 1 ? 's' : ''}
               </span>
             </div>
           )}
         </div>
 
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-white rounded-xl shadow-soft border border-inspira-100 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-charcoal-600">Total Solicitudes</p>
+                <p className="text-3xl font-bold text-charcoal-900 mt-1">{enrollments?.length || 0}</p>
+              </div>
+              <div className="p-3 bg-inspira-50 rounded-xl">
+                <FileCheck className="w-6 h-6 text-inspira-primary" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-soft border border-amber-100 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-charcoal-600">Pendientes</p>
+                <p className="text-3xl font-bold text-amber-700 mt-1">{pendingCount}</p>
+              </div>
+              <div className="p-3 bg-amber-50 rounded-xl">
+                <Clock className="w-6 h-6 text-amber-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-soft border border-inspira-100 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-charcoal-600">Activas</p>
+                <p className="text-3xl font-bold text-inspira-primary mt-1">{activeCount}</p>
+              </div>
+              <div className="p-3 bg-inspira-50 rounded-xl">
+                <CheckCircle className="w-6 h-6 text-inspira-primary" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-soft border border-inspira-100 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-charcoal-600">Ingresos Totales</p>
+                <p className="text-2xl font-bold text-charcoal-900 mt-1">S/ {totalRevenue.toFixed(2)}</p>
+              </div>
+              <div className="p-3 bg-inspira-50 rounded-xl">
+                <Coins className="w-6 h-6 text-inspira-primary" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white rounded-xl shadow-soft border border-inspira-100 p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-charcoal-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Buscar por nombre o email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 border border-charcoal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-inspira-primary focus:border-transparent placeholder-charcoal-400"
               />
             </div>
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-charcoal-400 w-5 h-5" />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 border border-charcoal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-inspira-primary focus:border-transparent"
               >
                 <option value="all">Todos los estados</option>
                 <option value="pending_payment">Pendientes</option>
@@ -195,112 +264,96 @@ export function Enrollments() {
           </div>
         </div>
 
-        {/* Debug Info */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-          <h3 className="font-semibold text-yellow-800 mb-2">🔍 Debug Info</h3>
-          <div className="text-sm space-y-1">
-            <div>isLoading: {isLoading ? '✅ true' : '❌ false'}</div>
-            <div>enrollments: {enrollments ? `✅ array con ${enrollments.length} items` : '❌ null/undefined'}</div>
-            <div>error: {error ? '❌ ' + String(error) : '✅ sin errores'}</div>
-            <div>filteredEnrollments: {filteredEnrollments ? `${filteredEnrollments.length} items` : 'null'}</div>
-          </div>
-        </div>
-
         {/* Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          {(() => {
-            console.log('🎨 Renderizando tabla:');
-            console.log('  - isLoading:', isLoading);
-            console.log('  - filteredEnrollments:', filteredEnrollments);
-            console.log('  - condición cumplida:', !isLoading && filteredEnrollments && filteredEnrollments.length > 0);
-            return null;
-          })()}
-          {isLoading ? (
-            <div className="text-center py-12">
-              <div className="text-gray-500">Cargando solicitudes...</div>
-            </div>
-          ) : filteredEnrollments && filteredEnrollments.length > 0 ? (
+        <div className="bg-white rounded-xl shadow-soft border border-inspira-100 overflow-hidden">
+          {filteredEnrollments && filteredEnrollments.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-inspira-100">
+                <thead className="bg-gradient-to-r from-inspira-50 to-white">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-inspira-primary uppercase tracking-wider">
                       Usuario
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-inspira-primary uppercase tracking-wider">
                       Plan
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-inspira-primary uppercase tracking-wider">
                       Monto
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-inspira-primary uppercase tracking-wider">
                       Estado
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-inspira-primary uppercase tracking-wider">
                       Fecha
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-inspira-primary uppercase tracking-wider">
                       Acciones
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-charcoal-100 bg-white">
                   {filteredEnrollments.map((enrollment) => (
-                    <tr key={enrollment.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={enrollment.id} className="hover:bg-inspira-50/50 transition-colors">
+                      <td className="px-6 py-4">
                         <div className="flex items-center">
+                          <div className="w-10 h-10 bg-gradient-to-br from-inspira-primary to-inspira-primary-light rounded-full flex items-center justify-center text-white font-semibold shadow-soft mr-3">
+                            {enrollment.user?.fullName?.charAt(0)?.toUpperCase() || 'U'}
+                          </div>
                           <div>
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-semibold text-charcoal-900">
                               {enrollment.user?.fullName || 'N/A'}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-xs text-charcoal-500">
                               {enrollment.user?.email || 'N/A'}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 text-xs font-semibold bg-inspira-50 text-inspira-primary rounded-full">
                           {enrollment.subscriptionPlan?.name || 'N/A'}
-                        </div>
+                        </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-bold text-charcoal-900">
                           {formatCurrency(enrollment.amountPaid)}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4">
                         {getStatusBadge(enrollment.status)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(enrollment.createdAt).toLocaleDateString()}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center text-sm text-charcoal-700">
+                          <Calendar className="w-4 h-4 mr-1.5 text-charcoal-400" />
+                          {new Date(enrollment.createdAt).toLocaleDateString('es-PE')}
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleViewEnrollment(enrollment)}
-                            className="text-blue-600 hover:text-blue-800 p-1"
+                            className="p-2 text-charcoal-600 hover:bg-charcoal-50 rounded-lg transition-all duration-200"
                             title="Ver detalles"
                           >
-                            <Eye className="w-5 h-5" />
+                            <Eye className="w-4 h-4" />
                           </button>
                           {enrollment.status === 'pending_payment' && (
                             <>
                               <button
                                 onClick={() => handleApprove(enrollment.id)}
-                                className="text-green-600 hover:text-green-800 p-1"
+                                className="p-2 text-inspira-primary hover:bg-inspira-50 rounded-lg transition-all duration-200"
                                 title="Aprobar"
                                 disabled={approveMutation.isPending}
                               >
-                                <CheckCircle className="w-5 h-5" />
+                                <CheckCircle className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleReject(enrollment.id)}
-                                className="text-red-600 hover:text-red-800 p-1"
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
                                 title="Rechazar"
                                 disabled={rejectMutation.isPending}
                               >
-                                <XCircle className="w-5 h-5" />
+                                <XCircle className="w-4 h-4" />
                               </button>
                             </>
                           )}
@@ -312,8 +365,18 @@ export function Enrollments() {
               </table>
             </div>
           ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No se encontraron solicitudes</p>
+            <div className="text-center py-16">
+              <div className="inline-block p-4 bg-inspira-50 rounded-full mb-4">
+                <FileCheck className="w-12 h-12 text-inspira-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-charcoal-900 mb-2">
+                No se encontraron solicitudes
+              </h3>
+              <p className="text-charcoal-600">
+                {searchTerm || statusFilter !== 'all'
+                  ? 'Intenta con otros filtros de búsqueda'
+                  : 'Las solicitudes de suscripción aparecerán aquí'}
+              </p>
             </div>
           )}
         </div>
@@ -329,23 +392,25 @@ export function Enrollments() {
               <>
                 <button
                   onClick={() => setIsViewModalOpen(false)}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                  className="px-6 py-2.5 text-charcoal-700 bg-charcoal-100 rounded-lg hover:bg-charcoal-200 transition-colors font-semibold"
                 >
                   Cerrar
                 </button>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <button
                     onClick={() => selectedEnrollment && handleReject(selectedEnrollment.id)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                    className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold flex items-center"
                     disabled={rejectMutation.isPending}
                   >
+                    <XCircle className="w-4 h-4 mr-2" />
                     Rechazar
                   </button>
                   <button
                     onClick={() => selectedEnrollment && handleApprove(selectedEnrollment.id)}
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                    className="px-6 py-2.5 bg-gradient-to-r from-inspira-primary to-inspira-primary-light text-white rounded-lg hover:shadow-green transition-all font-semibold flex items-center"
                     disabled={approveMutation.isPending}
                   >
+                    <CheckCircle className="w-4 h-4 mr-2" />
                     Aprobar
                   </button>
                 </div>
@@ -353,7 +418,7 @@ export function Enrollments() {
             ) : (
               <button
                 onClick={() => setIsViewModalOpen(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                className="px-6 py-2.5 bg-gradient-to-r from-inspira-primary to-inspira-primary-light text-white rounded-lg hover:shadow-green transition-all font-semibold"
               >
                 Cerrar
               </button>
@@ -364,19 +429,20 @@ export function Enrollments() {
             <div className="space-y-6">
               {/* User Info */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                <h3 className="text-sm font-bold text-charcoal-800 mb-3 flex items-center">
+                  <Users className="w-4 h-4 mr-2 text-inspira-primary" />
                   Información del Usuario
                 </h3>
-                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Nombre:</span>
-                    <span className="text-sm font-medium text-gray-900">
+                <div className="bg-inspira-50/50 border border-inspira-100 rounded-xl p-4 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-charcoal-600">Nombre:</span>
+                    <span className="text-sm font-bold text-charcoal-900">
                       {selectedEnrollment.user?.fullName || 'N/A'}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Email:</span>
-                    <span className="text-sm font-medium text-gray-900">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-charcoal-600">Email:</span>
+                    <span className="text-sm font-semibold text-charcoal-900">
                       {selectedEnrollment.user?.email || 'N/A'}
                     </span>
                   </div>
@@ -385,37 +451,41 @@ export function Enrollments() {
 
               {/* Subscription Info */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                <h3 className="text-sm font-bold text-charcoal-800 mb-3 flex items-center">
+                  <FileCheck className="w-4 h-4 mr-2 text-inspira-primary" />
                   Información de la Suscripción
                 </h3>
-                <div className="bg-blue-50 rounded-lg p-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Plan:</span>
-                    <span className="text-sm font-medium text-gray-900">
+                <div className="bg-gradient-to-br from-inspira-50 to-white border border-inspira-200 rounded-xl p-4 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-charcoal-600">Plan:</span>
+                    <span className="px-3 py-1 text-sm font-bold bg-white text-inspira-primary rounded-full shadow-soft">
                       {selectedEnrollment.subscriptionPlan?.name}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Monto:</span>
-                    <span className="text-sm font-semibold text-gray-900">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-charcoal-600">Monto:</span>
+                    <span className="text-lg font-bold text-inspira-primary flex items-center">
+                      <Coins className="w-4 h-4 mr-1" />
                       {formatCurrency(selectedEnrollment.amountPaid)}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Estado:</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-charcoal-600">Estado:</span>
                     {getStatusBadge(selectedEnrollment.status)}
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Fecha de solicitud:</span>
-                    <span className="text-sm font-medium text-gray-900">
-                      {new Date(selectedEnrollment.createdAt).toLocaleString()}
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-charcoal-600">Fecha de solicitud:</span>
+                    <span className="text-sm font-semibold text-charcoal-900 flex items-center">
+                      <Calendar className="w-4 h-4 mr-1.5 text-charcoal-400" />
+                      {new Date(selectedEnrollment.createdAt).toLocaleString('es-PE')}
                     </span>
                   </div>
                   {selectedEnrollment.expiresAt && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Expira:</span>
-                      <span className="text-sm font-medium text-gray-900">
-                        {new Date(selectedEnrollment.expiresAt).toLocaleDateString()}
+                    <div className="flex justify-between items-center pt-2 border-t border-inspira-100">
+                      <span className="text-sm font-medium text-charcoal-600">Expira:</span>
+                      <span className="text-sm font-bold text-charcoal-900 flex items-center">
+                        <Calendar className="w-4 h-4 mr-1.5 text-charcoal-400" />
+                        {new Date(selectedEnrollment.expiresAt).toLocaleDateString('es-PE')}
                       </span>
                     </div>
                   )}
@@ -425,14 +495,15 @@ export function Enrollments() {
               {/* Payment Voucher */}
               {selectedEnrollment.paymentVoucherUrl && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                  <h3 className="text-sm font-bold text-charcoal-800 mb-3 flex items-center">
+                    <FileCheck className="w-4 h-4 mr-2 text-inspira-primary" />
                     Comprobante de Pago
                   </h3>
-                  <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="border-2 border-inspira-100 rounded-xl p-2 bg-white">
                     <img
                       src={`http://localhost:3000/${selectedEnrollment.paymentVoucherUrl}`}
                       alt="Comprobante de pago"
-                      className="w-full h-auto rounded-lg"
+                      className="w-full h-auto rounded-lg shadow-soft"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Imagen+no+disponible';
                       }}

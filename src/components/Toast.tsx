@@ -12,102 +12,94 @@ interface ToastProps {
 const typeStyles = {
   success: {
     container: cn(
-      'bg-gradient-to-b from-emerald-50 to-white',
-      'dark:from-emerald-950/20 dark:to-zinc-950',
-      'border border-emerald-200/30 dark:border-emerald-800/30',
-      'shadow-[0_1px_6px_0_rgba(16,185,129,0.1)]'
+      'bg-white',
+      'border-2 border-inspira-primary',
+      'shadow-xl shadow-inspira-primary/20'
     ),
     iconBg: cn(
-      'bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500',
-      'dark:from-emerald-600 dark:via-green-600 dark:to-teal-600'
+      'bg-gradient-to-br from-inspira-primary to-inspira-primary-light',
+      'shadow-lg shadow-inspira-primary/50'
     ),
-    title: 'text-emerald-900 dark:text-emerald-100',
-    message: 'text-emerald-600 dark:text-emerald-300',
+    title: 'text-charcoal-900 font-bold',
+    message: 'text-charcoal-700',
     badge: cn(
-      'bg-gradient-to-r from-emerald-500/10 to-teal-500/10',
-      'dark:from-emerald-500/20 dark:to-teal-500/20',
-      'text-emerald-700 dark:text-emerald-200',
-      'ring-1 ring-emerald-500/20 dark:ring-emerald-400/20'
+      'bg-inspira-primary',
+      'text-white font-semibold',
+      'shadow-md'
     ),
     glow: {
-      top: 'bg-emerald-400 dark:bg-emerald-600/30',
-      middle: 'bg-green-400 dark:bg-green-600/30',
-      bottom: 'bg-teal-400 dark:bg-teal-600/30',
+      top: 'bg-inspira-400/30',
+      middle: 'bg-inspira-primary-light/30',
+      bottom: 'bg-inspira-400/30',
     }
   },
   error: {
     container: cn(
-      'bg-gradient-to-b from-red-50 to-white',
-      'dark:from-red-950/20 dark:to-zinc-950',
-      'border border-red-200/30 dark:border-red-800/30',
-      'shadow-[0_1px_6px_0_rgba(239,68,68,0.1)]'
+      'bg-white',
+      'border-2 border-red-500',
+      'shadow-xl shadow-red-500/20'
     ),
     iconBg: cn(
-      'bg-gradient-to-br from-red-500 via-rose-500 to-pink-500',
-      'dark:from-red-600 dark:via-rose-600 dark:to-pink-600'
+      'bg-gradient-to-br from-red-500 to-rose-600',
+      'shadow-lg shadow-red-500/50'
     ),
-    title: 'text-red-900 dark:text-red-100',
-    message: 'text-red-600 dark:text-red-300',
+    title: 'text-gray-900 font-bold',
+    message: 'text-gray-700',
     badge: cn(
-      'bg-gradient-to-r from-red-500/10 to-pink-500/10',
-      'dark:from-red-500/20 dark:to-pink-500/20',
-      'text-red-700 dark:text-red-200',
-      'ring-1 ring-red-500/20 dark:ring-red-400/20'
+      'bg-red-500',
+      'text-white font-semibold',
+      'shadow-md'
     ),
     glow: {
-      top: 'bg-red-400 dark:bg-red-600/30',
-      middle: 'bg-rose-400 dark:bg-rose-600/30',
-      bottom: 'bg-pink-400 dark:bg-pink-600/30',
+      top: 'bg-red-400/30',
+      middle: 'bg-rose-400/30',
+      bottom: 'bg-red-400/30',
     }
   },
   warning: {
     container: cn(
-      'bg-gradient-to-b from-amber-50 to-white',
-      'dark:from-amber-950/20 dark:to-zinc-950',
-      'border border-amber-200/30 dark:border-amber-800/30',
-      'shadow-[0_1px_6px_0_rgba(245,158,11,0.1)]'
+      'bg-white',
+      'border-2 border-amber-500',
+      'shadow-xl shadow-amber-500/20'
     ),
     iconBg: cn(
-      'bg-gradient-to-br from-amber-500 via-yellow-500 to-orange-500',
-      'dark:from-amber-600 dark:via-yellow-600 dark:to-orange-600'
+      'bg-gradient-to-br from-amber-500 to-orange-600',
+      'shadow-lg shadow-amber-500/50'
     ),
-    title: 'text-amber-900 dark:text-amber-100',
-    message: 'text-amber-600 dark:text-amber-300',
+    title: 'text-gray-900 font-bold',
+    message: 'text-gray-700',
     badge: cn(
-      'bg-gradient-to-r from-amber-500/10 to-orange-500/10',
-      'dark:from-amber-500/20 dark:to-orange-500/20',
-      'text-amber-700 dark:text-amber-200',
-      'ring-1 ring-amber-500/20 dark:ring-amber-400/20'
+      'bg-amber-500',
+      'text-white font-semibold',
+      'shadow-md'
     ),
     glow: {
-      top: 'bg-amber-400 dark:bg-amber-600/30',
-      middle: 'bg-yellow-400 dark:bg-yellow-600/30',
-      bottom: 'bg-orange-400 dark:bg-orange-600/30',
+      top: 'bg-amber-400/30',
+      middle: 'bg-orange-400/30',
+      bottom: 'bg-amber-400/30',
     }
   },
   info: {
     container: cn(
-      'bg-gradient-to-b from-blue-50 to-white',
-      'dark:from-blue-950/20 dark:to-zinc-950',
-      'border border-blue-200/30 dark:border-blue-800/30',
-      'shadow-[0_1px_6px_0_rgba(59,130,246,0.1)]'
+      'bg-white',
+      'border-2 border-blue-500',
+      'shadow-xl shadow-blue-500/20'
     ),
     iconBg: cn(
-      'bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500',
-      'dark:from-blue-600 dark:via-indigo-600 dark:to-purple-600'
+      'bg-gradient-to-br from-blue-500 to-indigo-600',
+      'shadow-lg shadow-blue-500/50'
     ),
-    title: 'text-blue-900 dark:text-blue-100',
-    message: 'text-blue-600 dark:text-blue-300',
+    title: 'text-gray-900 font-bold',
+    message: 'text-gray-700',
     badge: cn(
-      'bg-gradient-to-r from-blue-500/10 to-purple-500/10',
-      'dark:from-blue-500/20 dark:to-purple-500/20',
-      'text-blue-700 dark:text-blue-200',
-      'ring-1 ring-blue-500/20 dark:ring-blue-400/20'
+      'bg-blue-500',
+      'text-white font-semibold',
+      'shadow-md'
     ),
     glow: {
-      top: 'bg-blue-400 dark:bg-blue-600/30',
-      middle: 'bg-indigo-400 dark:bg-indigo-600/30',
-      bottom: 'bg-purple-400 dark:bg-purple-600/30',
+      top: 'bg-blue-400/30',
+      middle: 'bg-indigo-400/30',
+      bottom: 'bg-blue-400/30',
     }
   },
 };

@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, FolderOpen, Tag, Check, X } from 'lucide-react';
 import { categoriesService } from '../../services/categories.service';
 import { useAuthQuery } from '../../hooks';
+import { useToast } from '../../hooks/useToast';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import type { Category } from '../../types';
 
 export function Categories() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
 
   const { data: categories, isLoading } = useAuthQuery({
     queryKey: ['admin-categories'],
@@ -19,6 +23,11 @@ export function Categories() {
     mutationFn: (id: string) => categoriesService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
+      toast.success('Categoría eliminada', 'La categoría ha sido eliminada exitosamente');
+      setCategoryToDelete(null);
+    },
+    onError: (error: any) => {
+      toast.error('Error al eliminar', error.response?.data?.message || 'No se pudo eliminar la categoría');
     },
   });
 
@@ -27,102 +36,196 @@ export function Categories() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('¿Estás seguro de eliminar esta categoría?')) {
-      deleteMutation.mutate(id);
+  const handleDeleteClick = (category: Category) => {
+    setCategoryToDelete(category);
+  };
+
+  const confirmDelete = () => {
+    if (categoryToDelete) {
+      deleteMutation.mutate(categoryToDelete.id);
     }
   };
 
+  const activeCount = categories?.filter(c => c.isActive).length || 0;
+
   if (isLoading) {
-    return <div className="flex items-center justify-center h-64">Cargando categorías...</div>;
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-inspira-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-charcoal-600 font-medium">Cargando categorías...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Categorías</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-charcoal-900">Categorías</h1>
+          <p className="text-charcoal-600 mt-1">Organiza tus videos por categorías temáticas</p>
+        </div>
         <button
           onClick={() => {
             setEditingCategory(null);
             setIsModalOpen(true);
           }}
-          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          className="flex items-center px-6 py-3 bg-gradient-to-r from-inspira-primary to-inspira-primary-light text-white rounded-lg font-semibold hover:shadow-green transition-all duration-200 space-x-2"
         >
-          <Plus className="w-5 h-5 mr-2" />
-          Nueva Categoría
+          <Plus className="w-5 h-5" />
+          <span>Nueva Categoría</span>
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Nombre
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Slug
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Descripción
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Estado
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {categories?.map((category) => (
-              <tr key={category.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{category.name}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{category.slug}</div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm text-gray-500 max-w-md truncate">
-                    {category.description}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      category.isActive
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    {category.isActive ? 'Activa' : 'Inactiva'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => handleEdit(category)}
-                      className="text-indigo-600 hover:text-indigo-900"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(category.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-xl shadow-soft border border-inspira-100 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-charcoal-600">Total Categorías</p>
+              <p className="text-3xl font-bold text-charcoal-900 mt-1">{categories?.length || 0}</p>
+            </div>
+            <div className="p-3 bg-inspira-50 rounded-xl">
+              <FolderOpen className="w-6 h-6 text-inspira-primary" />
+            </div>
+          </div>
+        </div>
 
-        {categories?.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No hay categorías registradas</p>
+        <div className="bg-white rounded-xl shadow-soft border border-inspira-100 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-charcoal-600">Activas</p>
+              <p className="text-3xl font-bold text-inspira-primary mt-1">{activeCount}</p>
+            </div>
+            <div className="p-3 bg-inspira-50 rounded-xl">
+              <Check className="w-6 h-6 text-inspira-primary" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-soft border border-inspira-100 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-charcoal-600">Inactivas</p>
+              <p className="text-3xl font-bold text-charcoal-600 mt-1">{(categories?.length || 0) - activeCount}</p>
+            </div>
+            <div className="p-3 bg-charcoal-50 rounded-xl">
+              <X className="w-6 h-6 text-charcoal-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-xl shadow-soft border border-inspira-100 overflow-hidden">
+        {categories && categories.length > 0 ? (
+          <table className="min-w-full divide-y divide-inspira-100">
+            <thead className="bg-gradient-to-r from-inspira-50 to-white">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-bold text-inspira-primary uppercase tracking-wider">
+                  Nombre
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-inspira-primary uppercase tracking-wider">
+                  Slug
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-inspira-primary uppercase tracking-wider">
+                  Descripción
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-inspira-primary uppercase tracking-wider">
+                  Estado
+                </th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-inspira-primary uppercase tracking-wider">
+                  Acciones
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-charcoal-100 bg-white">
+              {categories.map((category) => (
+                <tr key={category.id} className="hover:bg-inspira-50/50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center">
+                      <div className="p-2 bg-inspira-50 rounded-lg mr-3">
+                        <FolderOpen className="w-5 h-5 text-inspira-primary" />
+                      </div>
+                      <div className="text-sm font-semibold text-charcoal-900">{category.name}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <code className="px-3 py-1 text-xs font-mono bg-charcoal-50 text-charcoal-700 rounded-md">
+                      {category.slug}
+                    </code>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-charcoal-600 max-w-md truncate">
+                      {category.description || 'Sin descripción'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
+                        category.isActive
+                          ? 'bg-inspira-50 text-inspira-primary'
+                          : 'bg-charcoal-100 text-charcoal-600'
+                      }`}
+                    >
+                      {category.isActive ? (
+                        <>
+                          <Check className="w-3 h-3 mr-1" />
+                          Activa
+                        </>
+                      ) : (
+                        <>
+                          <X className="w-3 h-3 mr-1" />
+                          Inactiva
+                        </>
+                      )}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => handleEdit(category)}
+                        className="p-2 text-inspira-primary hover:bg-inspira-50 rounded-lg transition-all duration-200"
+                        title="Editar categoría"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(category)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                        title="Eliminar categoría"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="text-center py-16">
+            <div className="inline-block p-4 bg-inspira-50 rounded-full mb-4">
+              <FolderOpen className="w-12 h-12 text-inspira-primary" />
+            </div>
+            <h3 className="text-lg font-semibold text-charcoal-900 mb-2">
+              No hay categorías todavía
+            </h3>
+            <p className="text-charcoal-600 mb-6">
+              Comienza creando tu primera categoría para organizar los videos
+            </p>
+            <button
+              onClick={() => {
+                setEditingCategory(null);
+                setIsModalOpen(true);
+              }}
+              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-inspira-primary to-inspira-primary-light text-white rounded-lg font-semibold hover:shadow-green transition-all duration-200 space-x-2"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Crear Primera Categoría</span>
+            </button>
           </div>
         )}
       </div>
@@ -137,6 +240,25 @@ export function Categories() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={!!categoryToDelete}
+        onClose={() => setCategoryToDelete(null)}
+        onConfirm={confirmDelete}
+        type="danger"
+        title="Eliminar Categoría"
+        message={
+          categoryToDelete ? (
+            <div className="space-y-2">
+              <p>¿Estás seguro de que deseas eliminar la categoría <strong>"{categoryToDelete.name}"</strong>?</p>
+              <p className="text-sm text-gray-600">Esta acción no se puede deshacer. Los videos asociados a esta categoría quedarán sin categoría.</p>
+            </div>
+          ) : ''
+        }
+        confirmText="Eliminar Categoría"
+        cancelText="Cancelar"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }
@@ -149,6 +271,7 @@ interface CategoryModalProps {
 
 function CategoryModal({ category, onClose, onSuccess }: CategoryModalProps) {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [formData, setFormData] = useState({
     name: category?.name || '',
     description: category?.description || '',
@@ -169,7 +292,14 @@ function CategoryModal({ category, onClose, onSuccess }: CategoryModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
+      toast.success(
+        category ? 'Categoría actualizada' : 'Categoría creada',
+        category ? 'La categoría ha sido actualizada exitosamente' : 'La categoría ha sido creada exitosamente'
+      );
       onSuccess();
+    },
+    onError: (error: any) => {
+      toast.error('Error al guardar', error.response?.data?.message || 'No se pudo guardar la categoría');
     },
   });
 
@@ -193,88 +323,113 @@ function CategoryModal({ category, onClose, onSuccess }: CategoryModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-soft-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="border-b border-inspira-100 p-6 bg-gradient-to-r from-inspira-50 to-white">
+          <h2 className="text-2xl font-bold text-charcoal-900">
             {category ? 'Editar Categoría' : 'Nueva Categoría'}
           </h2>
+          <p className="text-sm text-charcoal-600 mt-1">
+            {category ? 'Actualiza la información de la categoría' : 'Crea una nueva categoría para organizar tus videos'}
+          </p>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nombre de la Categoría
-              </label>
+        {/* Body */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {/* Nombre */}
+          <div>
+            <label className="block text-sm font-semibold text-charcoal-800 mb-2">
+              Nombre de la Categoría
+            </label>
+            <div className="relative">
+              <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-charcoal-400" />
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => handleNameChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-charcoal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-inspira-primary focus:border-transparent placeholder-charcoal-400 transition-all duration-200"
+                placeholder="Ej: Programación Web, Matemáticas..."
               />
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Slug (URL amigable)
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.slug}
-                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="programacion-web"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Se genera automáticamente del nombre, pero puedes editarlo
-              </p>
-            </div>
+          {/* Slug */}
+          <div>
+            <label className="block text-sm font-semibold text-charcoal-800 mb-2">
+              Slug (URL amigable)
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.slug}
+              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+              className="w-full px-4 py-3 border border-charcoal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-inspira-primary focus:border-transparent placeholder-charcoal-400 transition-all duration-200 font-mono text-sm"
+              placeholder="programacion-web"
+            />
+            <p className="mt-2 text-xs text-charcoal-500 flex items-center">
+              <Check className="w-3 h-3 mr-1 text-inspira-primary" />
+              Se genera automáticamente del nombre, pero puedes editarlo
+            </p>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Descripción
-              </label>
-              <textarea
-                rows={4}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Descripción de la categoría..."
-              />
-            </div>
+          {/* Descripción */}
+          <div>
+            <label className="block text-sm font-semibold text-charcoal-800 mb-2">
+              Descripción
+            </label>
+            <textarea
+              rows={4}
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="w-full px-4 py-3 border border-charcoal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-inspira-primary focus:border-transparent placeholder-charcoal-400 transition-all duration-200 resize-none"
+              placeholder="Describe brevemente el tipo de contenido que incluirá esta categoría..."
+            />
+          </div>
 
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="isActive"
-                checked={formData.isActive}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-              />
-              <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
-                Categoría Activa
-              </label>
-            </div>
+          {/* Estado Activo */}
+          <div className="flex items-center p-4 bg-inspira-50/50 rounded-lg border border-inspira-100">
+            <input
+              type="checkbox"
+              id="isActive"
+              checked={formData.isActive}
+              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+              className="w-5 h-5 text-inspira-primary border-charcoal-300 rounded focus:ring-2 focus:ring-inspira-primary cursor-pointer"
+            />
+            <label htmlFor="isActive" className="ml-3 text-sm font-medium text-charcoal-800 cursor-pointer select-none">
+              Categoría activa y visible en la plataforma
+            </label>
+          </div>
 
-            <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={saveMutation.isPending}
-                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
-              >
-                {saveMutation.isPending ? 'Guardando...' : 'Guardar'}
-              </button>
-            </div>
-          </form>
-        </div>
+          {/* Footer con Botones */}
+          <div className="flex gap-3 pt-4 border-t border-inspira-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-6 py-3 border-2 border-charcoal-300 text-charcoal-700 rounded-lg font-semibold hover:bg-charcoal-50 transition-all duration-200"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={saveMutation.isPending}
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-inspira-primary to-inspira-primary-light text-white rounded-lg font-semibold hover:shadow-green transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saveMutation.isPending ? (
+                <span className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Guardando...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center">
+                  <Check className="w-5 h-5 mr-2" />
+                  {category ? 'Guardar Cambios' : 'Crear Categoría'}
+                </span>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

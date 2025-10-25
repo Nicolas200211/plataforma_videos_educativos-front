@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Upload, FileVideo } from 'lucide-react';
 import { videosService } from '../../services/videos.service';
 import { useAuthQuery } from '../../hooks';
+import { useToast } from '../../hooks/useToast';
 import { categoriesService } from '../../services/categories.service';
 import { subscriptionsService } from '../../services/subscriptions.service';
 import type { Video } from '../../types';
@@ -15,6 +16,7 @@ interface VideoFormModalProps {
 
 export function VideoFormModal({ video, onClose, onSuccess }: VideoFormModalProps) {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(video?.thumbnailUrl || null);
@@ -47,10 +49,14 @@ export function VideoFormModal({ video, onClose, onSuccess }: VideoFormModalProp
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-videos'] });
+      toast.success(
+        video ? 'Video actualizado' : 'Video creado',
+        video ? 'El video ha sido actualizado exitosamente' : 'El video ha sido creado exitosamente'
+      );
       onSuccess();
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Error al guardar el video');
+      toast.error('Error al guardar', error.response?.data?.message || 'No se pudo guardar el video');
     },
   });
 
@@ -58,7 +64,7 @@ export function VideoFormModal({ video, onClose, onSuccess }: VideoFormModalProp
     e.preventDefault();
 
     if (!video && !videoFile) {
-      alert('Debes seleccionar un archivo de video');
+      toast.warning('Archivo de video requerido', 'Debes seleccionar un archivo de video antes de continuar');
       return;
     }
 
